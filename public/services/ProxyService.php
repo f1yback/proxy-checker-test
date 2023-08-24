@@ -18,6 +18,10 @@ class ProxyService
         $this->queue = $queue;
     }
 
+    /**
+     * Заполнение модели формы данными из запроса
+     * @return ProxyForm
+     */
     public function setFormData(): ProxyForm
     {
         $form = new ProxyForm();
@@ -25,6 +29,12 @@ class ProxyService
         return $form;
     }
 
+    /**
+     * Поиск проксей для проверки дублей
+     * @param string $ip
+     * @param int $port
+     * @return ActiveRecord|null
+     */
     private function findProxy(string $ip, int $port): ActiveRecord|null
     {
         return Proxy::find()
@@ -32,6 +42,11 @@ class ProxyService
             ->one();
     }
 
+    /**
+     * Метод сохранения формы с проксями
+     * @param ProxyForm $form
+     * @return array|int
+     */
     public function saveForm(ProxyForm $form): array|int
     {
         if ($form->validate()) {
@@ -60,11 +75,21 @@ class ProxyService
         return $form->errors;
     }
 
+    /**
+     * Метод для аякс-валидации формы
+     * @param ProxyForm $form
+     * @return array
+     */
     public function validateForm(ProxyForm $form): array
     {
         return ActiveForm::validate($form);
     }
 
+    /**
+     * Получить текущий пул прокси
+     * @param int $pool
+     * @return array
+     */
     public function getProxyPool(int $pool): array
     {
         return Proxy::find()

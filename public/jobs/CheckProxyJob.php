@@ -13,12 +13,20 @@ class CheckProxyJob extends BaseObject implements JobInterface
     private array $typeResponse;
     private array $curlResponse;
 
+    /**
+     * Запуска процесса сбора информации
+     * @return void
+     */
     private function process(): void
     {
         $this->checkTypes();
         $this->handle();
     }
 
+    /**
+     * Возможные типы прокси
+     * @return string[]
+     */
     private function getProxyTypes(): array
     {
         return [
@@ -29,6 +37,10 @@ class CheckProxyJob extends BaseObject implements JobInterface
         ];
     }
 
+    /**
+     * Метод для сбора всей необходимой информации, полученной из multi curl
+     * @return void
+     */
     private function handle(): void
     {
         foreach ($this->typeResponse as $key => $item) {
@@ -52,6 +64,10 @@ class CheckProxyJob extends BaseObject implements JobInterface
         }
     }
 
+    /**
+     * Проверка проксей в multicurl процессе
+     * @return void
+     */
     private function checkTypes(): void
     {
         $curls = [];
@@ -85,6 +101,10 @@ class CheckProxyJob extends BaseObject implements JobInterface
         curl_multi_close($mh);
     }
 
+    /**
+     * @param $queue
+     * @return mixed|void
+     */
     public function execute($queue)
     {
         $this->collection = Proxy::findAll(['pool' => $this->poolId]);
