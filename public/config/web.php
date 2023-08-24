@@ -6,7 +6,12 @@ $db = require __DIR__ . '/db.php';
 $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
-    'bootstrap' => ['log'],
+    'bootstrap' => [
+        'log',
+        'queue'
+    ],
+    'language' => 'ru',
+    'name' => 'Proxy Checker Test',
     'aliases' => [
         '@bower' => '@vendor/bower-asset',
         '@npm'   => '@vendor/npm-asset',
@@ -16,8 +21,23 @@ $config = [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'WQepSd0tKAWSmG7T08XHpB1wiD1D9fyD',
         ],
+        'queue' => [
+            'class' => \yii\queue\redis\Queue::class,
+            'redis' => 'redis',
+            'channel' => 'queue'
+        ],
+        'redis' => [
+            'class' => \yii\redis\Connection::class,
+            'hostname' => 'proxy-service-redis',
+            'port' => 6379,
+            'database' => 0,
+            'password' => '1234567890',
+        ],
         'cache' => [
-            'class' => 'yii\caching\FileCache',
+            'class' => \yii\redis\Cache::class,
+        ],
+        'session' => [
+            'class' => \yii\redis\Session::class,
         ],
         'user' => [
             'identityClass' => 'app\models\User',
@@ -42,14 +62,12 @@ $config = [
             ],
         ],
         'db' => $db,
-        /*
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
             ],
         ],
-        */
     ],
     'params' => $params,
 ];
@@ -67,7 +85,7 @@ if (YII_ENV_DEV) {
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
-        //'allowedIPs' => ['127.0.0.1', '::1'],
+        'allowedIPs' => ['*'],
     ];
 }
 
