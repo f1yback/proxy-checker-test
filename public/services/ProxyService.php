@@ -43,6 +43,21 @@ class ProxyService
     }
 
     /**
+     * Получить индекс последнего пула для проверки
+     * @return int
+     */
+    private function getLastPoolIndex(): int
+    {
+        $lastPoolElem = Proxy::find()
+            ->limit(1)
+            ->orderBy('id desc')
+            ->select('pool')
+            ->asArray()
+            ->one();
+        return empty($lastPoolElem['pool']) ? 1 : $lastPoolElem['pool'] + 1;
+    }
+
+    /**
      * Метод сохранения формы с проксями
      * @param ProxyForm $form
      * @return array|int
@@ -50,13 +65,7 @@ class ProxyService
     public function saveForm(ProxyForm $form): array|int
     {
         if ($form->validate()) {
-            $lastPoolElem = Proxy::find()
-                ->limit(1)
-                ->orderBy('id desc')
-                ->select('pool')
-                ->asArray()
-                ->one();
-            $lastPool = empty($lastPoolElem['pool']) ? 1 : $lastPoolElem['pool'] + 1;
+            $lastPool = $this->getLastPoolIndex();
             foreach ($form->getParsedProxy() as $line) {
                 $proxyData = explode(':', $line);
                 $proxy = $this->findProxy($proxyData[0], (int)$proxyData[1]);
@@ -66,7 +75,7 @@ class ProxyService
                 $proxy->ip = $proxyData[0];
                 $proxy->port = (int)$proxyData[1];
                 $proxy->check_status = 0;
-                $proxy->pool = (int)$lastPool;
+                $proxy->pool = $lastPool;
                 $proxy->save();
             }
             $this->queue->push(new CheckProxyJob(['poolId' => $lastPool]));
