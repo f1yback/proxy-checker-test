@@ -1,0 +1,57 @@
+version: '3'
+services:
+  webserver:
+    container_name: proxy-service-nginx
+    image: nginx
+    ports: 
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./run/logs/nginx:/var/log/nginx 
+      - ./run/configs/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./public:/var/www/html
+    links:
+      - proxy-service-php
+    networks:
+        - rnet
+  php:
+    image: devilbox/php-fpm:8.1-mods
+    container_name: proxy-service-php
+    volumes:
+      - ./public:/var/www/html
+    command: bash -c "curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && /usr/local/sbin/php-fpm"
+    links:
+      - proxy-service-mysql
+    networks:
+      - rnet
+  db:
+    container_name: proxy-service-mysql
+    image: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 'pass'
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'pass'
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - ./run/db:/var/lib/mysql
+    networks:
+        - rnet
+  redis:
+    image: redis
+    container_name: proxy-service-redis
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass 1234567890
+    volumes: 
+      - ./run/cache:/data
+    networks:
+      - rnet  
+networks:
+  rnet:
+    driver: bridge
